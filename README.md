@@ -48,13 +48,15 @@ The system supports two main user roles:
 - Researchers: design, configure, deploy, and monitor experiments
 - Participants: take part in experiments by interacting with search engines or chat tools
 
+
+## 🛠️ Getting Started
+
 > **⚠️ Running Services Independently**
-> The instructions below in the **Getting Started** guide are for running the **entire stack together** using `Docker Compose`. If you wish to run the Frontend or Backend individually (e.g., for local development or native execution without Docker), please navigate to their respective submodule directories and follow the specific instructions in their individual `README.md` files:
+>
+> The instructions here are for running the full stack with Docker Compose. To run services separately, follow the README.md in:
 > - **Backend API:** `searchat-behavior-api/README.md`
 > - **Frontend UI:** `searchat-behavior-ui/README.md`
 ---
-
-## 🛠️ Getting Started
 
 ### 📋 Prerequisites
 
