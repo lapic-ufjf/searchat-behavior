@@ -1,102 +1,78 @@
-YEAR := $(shell date +%Y)
-
-define COPYRIGHT
-/*
- * Copyright (c) $(YEAR), lapic-ufjf
- * Licensed under The MIT License [see LICENSE for details]
- */
-endef
-export COPYRIGHT
-
-FILES := $(shell find . -type f \( -name "*.ts" -o -name "*.js" \) \
-	! -path "./node_modules/*" \
-	! -path "./dist/*" \
-	! -path "./build/*")
-
-.PHONY: all help test test-api test-watch test-cov test-debug test-e2e check-copyright add-copyright lint lint-check
+.PHONY: all help \
+	api-all ui-all \
+	test test-api test-watch test-cov test-debug test-e2e \
+	lint lint-check \
+	check-copyright add-copyright
 
 help:
 	@echo "======================================================================"
 	@echo "Available make targets:"
 	@echo "======================================================================"
 	@echo ""
-	@echo "  make all              Run all tests and check copyright statements"
+	@echo "  make all              Run the default checks exposed by api and ui"
 	@echo "  make help             Show this help message"
 	@echo ""
+	@echo "Service Aggregates:"
+	@echo "  make api-all          Run api/Makefile default target"
+	@echo "  make ui-all           Run the available ui/Makefile checks"
+	@echo ""
 	@echo "Testing Targets:"
-	@echo "  make test             Run all API tests (27 test suites, 55 tests)"
-	@echo "  make test-api         Run all API tests (same as 'make test')"
-	@echo "  make test-watch       Run tests in watch mode (re-run on file changes)"
-	@echo "  make test-cov         Run tests with coverage report"
-	@echo "  make test-debug       Run tests in debug mode"
-	@echo "  make test-e2e         Run end-to-end tests"
+	@echo "  make test             Run api tests"
+	@echo "  make test-api         Run api tests (same as 'make test')"
+	@echo "  make test-watch       Run api tests in watch mode"
+	@echo "  make test-cov         Run api tests with coverage report"
+	@echo "  make test-debug       Run api tests in debug mode"
+	@echo "  make test-e2e         Run api end-to-end tests"
 	@echo ""
-	@echo "Linting:"
-	@echo "  make lint             Fix linting issues in API code"
-	@echo "  make lint-check       Check for linting issues without fixing"
+	@echo "Shared Targets:"
+	@echo "  make lint             Run lint target in api and ui"
+	@echo "  make lint-check       Run lint-check target in api and ui"
 	@echo ""
-	@echo "Copyright Management:"
-	@echo "  make check-copyright  Verify all source files have copyright headers"
-	@echo "  make add-copyright    Add copyright headers to files missing them"
+	@echo "  make check-copyright  Run check-copyright target in api and ui"
+	@echo "  make add-copyright    Run add-copyright target in api and ui"
 	@echo ""
 	@echo "======================================================================"
 
-all: test check-copyright
+all: api-all ui-all
 	@echo "✅ All checks passed!"
 
-add-copyright:
-	@echo "Adding copyright statements to files..."
-	@find . -type f \( -name "*.ts" -o -name "*.js" \) \
-		! -path "./node_modules/*" \
-		! -path "./*/node_modules/*" \
-		! -path "./dist/*" \
-		! -path "./*/dist/*" \
-		! -path "./build/*" \
-		! -path "./*/build/*" \
-		! -path "./coverage/*" \
-		! -path "./.next/*" | while read file; do \
-		if ! grep -q "Copyright (c)" "$$file"; then \
-			echo "Updating $$file"; \
-			{ \
-				printf "%s\n\n" "$$COPYRIGHT"; \
-				cat "$$file"; \
-			} > "$$file.tmp" && mv "$$file.tmp" "$$file"; \
-		fi; \
-	done
-	@echo "✅ Done adding copyright statements."
+api-all:
+	@$(MAKE) -C api all
 
 check-copyright:
-	@bash ./check-license.sh
+	@$(MAKE) -C api check-copyright
+	@$(MAKE) -C ui check-copyright
+
+add-copyright:
+	@$(MAKE) -C api add-copyright
+	@$(MAKE) -C ui add-copyright
 
 lint:
-	@echo "Fixing linting issues..."
-	@cd api && pnpm lint
-	@echo "✅ Linting complete!"
+	@$(MAKE) -C api lint
+	@$(MAKE) -C ui lint
 
 lint-check:
-	@echo "Checking for linting issues..."
-	@cd api && pnpm eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0 || (echo "❌ Linting issues found!"; exit 1)
+	@$(MAKE) -C api lint-check
+	@$(MAKE) -C ui lint-check
 
 test-api:
-	@echo "Running API tests..."
-	@cd api && pnpm test
+	@$(MAKE) -C api test
 
 test:
-	@echo "Running all tests..."
-	@cd api && pnpm test
+	@$(MAKE) -C api test
 
 test-watch:
-	@echo "Running API tests in watch mode..."
-	@cd api && pnpm test:watch
+	@$(MAKE) -C api test-watch
 
 test-cov:
-	@echo "Running API tests with coverage..."
-	@cd api && pnpm test:cov
+	@$(MAKE) -C api test-cov
 
 test-debug:
-	@echo "Running API tests in debug mode..."
-	@cd api && pnpm test:debug
+	@$(MAKE) -C api test-debug
 
 test-e2e:
-	@echo "Running end-to-end tests..."
-	@cd api && pnpm test:e2e
+	@$(MAKE) -C api test-e2e
+
+ui-all:
+	@$(MAKE) -C ui lint-check
+	@$(MAKE) -C ui check-copyright
