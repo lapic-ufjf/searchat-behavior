@@ -29,21 +29,21 @@ services:
       - /app/node_modules
     
     depends_on:
-      - postgres-api
-  
-  front:
+      - postgres-api 
+  ui:
     build:
       context: ./ui
       dockerfile: Dockerfile.dev
     stdin_open: true
     tty: true
     ports:
-      - "${UI_PORT:-3001}:3001"
+      - "${UI_PORT:-3001}:3000"
     volumes:
       - ./ui:/app
       - /app/node_modules
     environment:
       - HOST=0.0.0.0
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
     depends_on:
