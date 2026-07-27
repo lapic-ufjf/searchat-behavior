@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: nestjs-dev
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     environment:
       DB_HOST: postgres-api
       DB_USER: ${DB_USER:-postgres}
@@ -29,23 +29,23 @@ services:
       - /app/node_modules
     
     depends_on:
-      - postgres-api
-  
-  front:
+      - postgres-api 
+  ui:
     build:
       context: ./ui
       dockerfile: Dockerfile.dev
     stdin_open: true
     tty: true
     ports:
-      - "3001:3001"
+      - "${UI_PORT:-3001}:3000"
     volumes:
       - ./ui:/app
       - /app/node_modules
     environment:
       - HOST=0.0.0.0
-      - PORT=3001
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
       - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - api
 
