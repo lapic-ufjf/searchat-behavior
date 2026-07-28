@@ -1,49 +1,61 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright (c) 2026, lapic-ufjf
 # Licensed under The MIT License [see LICENSE for details]
 
-set -e
+set -euo pipefail
 
-YEAR=$(date +%Y)
-MISSING_COUNT=0
 TOTAL_COUNT=0
+MISSING_COUNT=0
 
-echo "Checking for copyright statements in source files..."
+EXPECTED_HEADER='/*
+ * Copyright (c) 2026, lapic-ufjf
+ * Licensed under The MIT License [see LICENSE for details]
+ */'
+
+echo "Checking copyright headers..."
 echo "=========================================================="
 
-# Find all TypeScript and JavaScript files excluding node_modules, dist, build, coverage
 while IFS= read -r file; do
-    TOTAL_COUNT=$((TOTAL_COUNT + 1))
-    if ! grep -q "Copyright (c)" "$file"; then
-        echo "  ❌ Missing copyright: $file"
-        MISSING_COUNT=$((MISSING_COUNT + 1))
+    ((TOTAL_COUNT++))
+
+    HEADER="$(head -n 4 "$file")"
+
+    if [[ "$HEADER" != "$EXPECTED_HEADER" ]]; then
+        echo "Missing or invalid header: $file"
+        ((MISSING_COUNT++))
     fi
-done < <(find . -type f \( -name "*.ts" -o -name "*.js" \) \
-    ! -path "./node_modules/*" \
-    ! -path "./*/node_modules/*" \
-    ! -path "./dist/*" \
-    ! -path "./*/dist/*" \
-    ! -path "./build/*" \
-    ! -path "./*/build/*" \
-    ! -path "./coverage/*" \
-    ! -path "./*/coverage/*" \
-    ! -path "./.next/*" \
-    ! -path "*/.next/*" \
-    ! -name "*.config.js" \
-    2>/dev/null)
+done < <(
+    find . \
+        \( \
+            -path "*/node_modules" -o \
+            -path "*/dist" -o \
+            -path "*/build" -o \
+            -path "*/coverage" -o \
+            -path "*/.next" \
+        \) -prune -o \
+        -type f \
+        \( \
+            -name "*.js"  -o \
+            -name "*.jsx" -o \
+            -name "*.ts"  -o \
+            -name "*.tsx" -o \
+            -name "*.mjs" -o \
+            -name "*.cjs" \
+        \) \
+        -print
+)
 
 echo "=========================================================="
-echo "Total files checked: $TOTAL_COUNT"
-echo "Files missing copyright: $MISSING_COUNT"
+echo "Files checked: $TOTAL_COUNT"
+echo "Files with issues: $MISSING_COUNT"
 
-if [ $MISSING_COUNT -gt 0 ]; then
-    echo ""
-    echo "❌ Please add copyright statements to the files listed above."
-    echo "   Run 'make add-copyright' from the project root to automatically add them."
+if (( MISSING_COUNT > 0 )); then
+    echo
+    echo "Some files are missing the expected copyright header."
+    echo "Run 'make add-copyright' to add the required header automatically."
     exit 1
-else
-    echo ""
-    echo "✅ All files have copyright statements!"
-    exit 0
 fi
+
+echo
+echo "All source files contain the expected copyright header."
